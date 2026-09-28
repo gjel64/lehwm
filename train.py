@@ -114,8 +114,8 @@ def lehjepa_forward(self, batch, stage, cfg):
     )
  
     logs = {f"{stage}/{k}": v.detach() for k, v in output.items() if "loss" in k}
-    logs[f"{stage}/w_kl"] = torch.tensor(w_kl)
     self.log_dict(logs, on_step=True, sync_dist=True)
+    self.log(f"{stage}/w_kl", float(w_kl), on_step=True)
     return output
 
 
@@ -141,7 +141,7 @@ def run(cfg):
             normalizer = get_column_normalizer(dataset, col, col)
             transforms.append(normalizer)
 
-        cfg.model.action_encoder.input_dim = cfg.data.dataset.frameskip * dataset.get_dim("action")
+        cfg.action_dim = cfg.data.dataset.frameskip * dataset.get_dim("action")
 
     transform = spt.data.transforms.Compose(*transforms)
     dataset.transform = transform
@@ -160,6 +160,11 @@ def run(cfg):
 
     world_model = hydra.utils.instantiate(cfg.model)
 
+    # loads LeWM weights.pt from HF repo and freeze level 0
+    lewm_sd = torch.load(Path(cfg.lewm_weights).expanduser(), map_location="gpu", weights_only=False)
+    world_model.load_lewm(lewm_sd)
+    freeze_level0(world_model)
+
     optimizers = {
         'model_opt': {
             "modules": 'model',
@@ -173,7 +178,7 @@ def run(cfg):
     world_model = spt.Module(
         model = world_model,
         sigreg = SIGReg(**cfg.loss.sigreg.kwargs),
-        forward=partial(lejepa_forward, cfg=cfg),
+        forward=partial(lehjepa_forward, cfg=cfg),
         optim=optimizers,
     )
 

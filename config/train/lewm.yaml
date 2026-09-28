@@ -2,7 +2,7 @@ defaults:
   - _self_
   - launcher: local
   - data: pusht
-  - model: lehwm
+  - model: lewm
 
 output_model_name: lehwm
 subdir: ${hydra:job.id}
@@ -24,6 +24,10 @@ action_dim: ???       # read on config.json
 
 # IMPORTANT : la longueur des séquences du dataset (dans la config data)
 # doit valoir history_size + n = 7 frames.
+
+
+num_preds: ${n}
+lewm_weights: ${oc.env:STABLEWM_HOME,'~/.stable-wm'}/hf_pusht/weights.pt  # hf download quentinll/lewm-pusht
 
 trainer:
   max_epochs: 100

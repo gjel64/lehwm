@@ -90,7 +90,7 @@ pred_proj1:
   _target_: module.MLP
   input_dim: ${embed_dim_1}
   output_dim: ${embed_dim_1}
-  hidden_dim: 2048
+  hidden_dim: 512
   norm_fn:
     _target_: torch.nn.BatchNorm1d
     _partial_: true
