@@ -283,3 +283,22 @@ class ARPredictor(nn.Module):
         x = self.dropout(x)
         x = self.transformer(x, c)
         return x
+
+
+class Posterior(nn.Module):
+    def __init__(self, input_dim, hidden_dim, m_dim):
+        super().__init__()
+        self.mlp = MLP(input_dim * 3, hidden_dim, m_dim * 2)
+
+    def forward(self, z_t, z_tn):
+        h = torch.cat([z_t, z_tn, z_tn - z_t], dim=-1)
+        mu, logvar = self.mlp(h).chunk(2, dim=-1)
+        logvar = logvar.clamp(-8.0, 4.0)
+        m = mu + (0.5 * logvar).exp() * torch.randn_like(mu)
+        return m, mu, logvar
+
+
+def kl_loss(mu, logvar, free_bits=0.0):
+    kl = 0.5 * (mu.pow(2) + logvar.exp() - 1.0 - logvar)   # (..., m_dim)
+    kl = kl.flatten(0, -2).mean(0)                          # moyenne batch, par dim
+    return kl.clamp(min=free_bits).sum()

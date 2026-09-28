@@ -2,9 +2,9 @@ defaults:
   - _self_
   - launcher: local
   - data: pusht
-  - model: lewm
+  - model: lehwm
 
-output_model_name: lewm
+output_model_name: lehwm
 subdir: ${hydra:job.id}
 
 num_workers: 6
@@ -13,6 +13,17 @@ seed: 3072
 img_size: 224
 embed_dim: 192
 history_size: 3
+
+# level 1
+
+n: 4                  # number of steps predicted by predictor1
+embed_dim_1: 96       # dim of the embedding after the elevator (D_1)
+m_dim: 32             # dim of the latent variable m
+history_size_1: 1     # level 1 markov TODO: upgrade
+action_dim: ???       # read on config.json
+
+# IMPORTANT : la longueur des séquences du dataset (dans la config data)
+# doit valoir history_size + n = 7 frames.
 
 trainer:
   max_epochs: 100
@@ -30,10 +41,9 @@ loader:
 
 optimizer:
   type: AdamW
-  lr: 5e-5
+  lr: 3e-4 # TODO: tune this hyperparameter
   weight_decay: 1e-3
 
-num_preds: 1
 
 loss:
   sigreg:
@@ -41,3 +51,11 @@ loss:
     kwargs:
       knots: 17
       num_proj: 1024
+  kl:
+    weight: 0.01 # TODO: tune this hyperparameter
+    warmup_steps: 5000               # annealing 0 -> weight
+    free_bits: 0.0                   # ex. 0.1–0.5 si posterior collapse
+  cons:
+    weight: 1.0                      # manquait
+  skill:
+    weight: 1.0 

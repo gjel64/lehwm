@@ -1,4 +1,4 @@
-_target_: jepa.JEPA
+_target_: hjepa.HJEPA
 
 encoder:
   _target_: stable_pretraining.backbone.utils.vit_hf
@@ -23,7 +23,7 @@ predictor:
 
 action_encoder:
   _target_: module.Embedder
-  input_dim: ???
+  input_dim: ${action_dim}
   emb_dim: ${embed_dim}
 
 projector:
@@ -39,6 +39,57 @@ pred_proj:
   _target_: module.MLP
   input_dim: ${embed_dim}
   output_dim: ${embed_dim}
+  hidden_dim: 2048
+  norm_fn:
+    _target_: torch.nn.BatchNorm1d
+    _partial_: true
+
+elevator: # need to flatten before : (B*T, D)
+  _target_: module.MLP
+  input_dim: ${embed_dim}
+  output_dim: ${embed_dim_1}
+  hidden_dim: 2048
+  norm_fn:
+    _target_: torch.nn.BatchNorm1d
+    _partial_: true
+
+posterior:
+  _target_: module.Posterior
+  input_dim: ${embed_dim_1}
+  hidden_dim: 512
+  m_dim: ${m_dim}
+
+predictor1:
+  _target_: module.ARPredictor
+  num_frames: ${history_size_1}
+  input_dim: ${embed_dim_1}
+  hidden_dim: 256
+  output_dim: ${embed_dim_1}
+  depth: 4
+  heads: 8
+  mlp_dim: 1024
+  dim_head: 32
+  dropout: 0.1
+  emb_dropout: 0.0
+
+pi: # need to flatten before : (B*T, D)
+  _target_: module.MLP
+  input_dim: ${eval:'${embed_dim} + ${m_dim}'}
+  output_dim: ${eval:'${action_dim} * ${n}'}
+  hidden_dim: 1024
+  norm_fn: 
+    _target_: torch.nn.BatchNorm1d
+    _partial_: true
+
+m_encoder:
+  _target_: module.Embedder
+  input_dim: ${m_dim}
+  emb_dim: ${embed_dim_1} 
+
+pred_proj1:
+  _target_: module.MLP
+  input_dim: ${embed_dim_1}
+  output_dim: ${embed_dim_1}
   hidden_dim: 2048
   norm_fn:
     _target_: torch.nn.BatchNorm1d

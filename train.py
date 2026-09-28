@@ -10,8 +10,9 @@ import torch
 from lightning.pytorch.loggers import WandbLogger
 from omegaconf import OmegaConf, open_dict
 
-from module import SIGReg
+from module import SIGReg, kl_loss
 from utils import get_column_normalizer, get_img_preprocessor, SaveCkptCallback
+from hjepa import freeze_level0, _flat
 
 
 def lejepa_forward(self, batch, stage, cfg):
@@ -43,6 +44,81 @@ def lejepa_forward(self, batch, stage, cfg):
     losses_dict = {f"{stage}/{k}": v.detach() for k, v in output.items() if "loss" in k}
     self.log_dict(losses_dict, on_step=True, sync_dist=True)
     return output
+
+
+def lehjepa_forward(self, batch, stage, cfg):
+
+    ctx_len = cfg.history_size
+    n = cfg.n # number of steps predicted by predictor1
+    model = self.model
+    freeze_level0(model)
+
+    # Replace NaN values with 0 (occurs at sequence boundaries)
+    batch["action"] = torch.nan_to_num(batch["action"], 0.0)
+
+
+    ######## Level 0 : LeWM ########
+
+    with torch.no_grad():
+        output = model.encode(batch)
+        z0 = output["emb"]            # (B, T, D0)
+        act_emb = output["act_emb"]   # (B, T, D0)
+        B, T, _ = z0.shape
+        assert T == ctx_len + n, f"need {ctx_len + n} frames, got {T}"
+
+        # Rollout AR of P0 over n steps, sliding window of ctx_len frames.
+        roll = z0[:, :ctx_len]
+        for k in range(n):
+            pred = model.predict(roll[:, -ctx_len:], act_emb[:, k:k + ctx_len])
+            roll = torch.cat([roll, pred[:, -1:]], dim=1)
+        z0_roll = roll[:, -1:]        # (B, 1, D0) : predictions of T-1 frames, given the first ctx_len frames
+ 
+    t, tn = ctx_len - 1, ctx_len - 1 + n
+
+
+    ######## Level 1 : LeHWM ########
+
+    z1 = _flat(model.elevator, z0)                     # (B, T, D1)
+    z1_t, z1_tn = z1[:, t:t + 1], z1[:, tn:tn + 1]     # (B, 1, D1)
+ 
+    m, mu, logvar = model.posterior(z1_t, z1_tn)       # (B, 1, m_dim)
+    pred1 = model.predictor1(z1_t, model.m_encoder(m)) # (B, 1, D1)
+    pred1 = _flat(model.pred_proj1, pred1)
+ 
+    # Consistency 
+    cons_tgt = _flat(model.elevator, z0_roll).detach()
+ 
+    # Skill 
+    pi_in = torch.cat([z0[:, t], m[:, 0].detach()], dim=-1)   # (B, D0 + m_dim)
+    a_pred = model.pi(pi_in)                                  # (B, n * action_dim)
+    a_true = batch["action"][:, t:tn].reshape(B, -1).float()  # (B, n * action_dim)
+
+
+    ######## Losses ########
+
+    step = getattr(self, "global_step", 0)
+    w_kl = cfg.loss.kl.weight * min(1.0, step / max(1, cfg.loss.kl.warmup_steps))
+ 
+    output["pred1_loss"] = (pred1 - z1_tn).pow(2).mean()
+    output["sigreg1_loss"] = self.sigreg(z1.transpose(0, 1)) # SIGReg needs (T, B, D)
+    output["kl_loss"] = kl_loss(mu, logvar, free_bits=cfg.loss.kl.free_bits)
+    output["cons_loss"] = (pred1 - cons_tgt).pow(2).mean()
+    output["skill_loss"] = (a_pred - a_true).pow(2).mean()
+ 
+    output["loss"] = (
+        output["pred1_loss"]
+        + cfg.loss.sigreg.weight * output["sigreg1_loss"]
+        + w_kl * output["kl_loss"]
+        + cfg.loss.cons.weight * output["cons_loss"]
+        + cfg.loss.skill.weight * output["skill_loss"]
+    )
+ 
+    logs = {f"{stage}/{k}": v.detach() for k, v in output.items() if "loss" in k}
+    logs[f"{stage}/w_kl"] = torch.tensor(w_kl)
+    self.log_dict(logs, on_step=True, sync_dist=True)
+    return output
+
+
 
 @hydra.main(version_base=None, config_path="./config/train", config_name="lewm")
 def run(cfg):
