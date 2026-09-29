@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Hydra / logs
+outputs/
+multirun/
+*.log
+wandb/
+lightning_logs/
+
+# Checkpoints & données
+*.ckpt
+*.pt
+*.h5
+
+# Benchmark (résultats, graphes, vidéos)
+benchmark/results/*.json
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
