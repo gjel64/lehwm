@@ -1,0 +1,3 @@
+[2026-09-28 18:10:13,829][root][INFO] - Cached 'action' from '/home/mattin/.stable_worldmodel/datasets/ogbench/cube_single_expert.h5'
+[2026-09-28 18:10:13,959][root][INFO] - Cached 'observation' from '/home/mattin/.stable_worldmodel/datasets/ogbench/cube_single_expert.h5'
+[2026-09-28 18:10:15,078][root][INFO] - Merged columns ['proprio_effector_pos', 'proprio_effector_yaw', 'proprio_gripper_contact', 'proprio_gripper_opening', 'proprio_gripper_vel', 'proprio_joint_pos', 'proprio_joint_vel'] into 'proprio' and cached it

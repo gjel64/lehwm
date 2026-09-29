@@ -1,7 +1,7 @@
 defaults:
   - _self_
   - launcher: local
-  - data: pusht
+  - data: ogb
   - model: lewm
 
 output_model_name: lehwm
@@ -27,7 +27,7 @@ action_dim: ???       # read on config.json
 
 
 num_preds: ${n}
-lewm_weights: ${oc.env:STABLEWM_HOME,'~/.stable-wm'}/hf_pusht/weights.pt  # hf download quentinll/lewm-pusht
+lewm_weights: ~/.stable_worldmodel/checkpoints/quentinll/lewm-cube/weights.pt  # hf download quentinll/lewm-cube
 
 trainer:
   max_epochs: 100

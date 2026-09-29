@@ -161,7 +161,7 @@ def run(cfg):
     world_model = hydra.utils.instantiate(cfg.model)
 
     # loads LeWM weights.pt from HF repo and freeze level 0
-    lewm_sd = torch.load(Path(cfg.lewm_weights).expanduser(), map_location="gpu", weights_only=False)
+    lewm_sd = torch.load(Path(cfg.lewm_weights).expanduser(), map_location="cpu", weights_only=False)
     world_model.load_lewm(lewm_sd)
     freeze_level0(world_model)
 
