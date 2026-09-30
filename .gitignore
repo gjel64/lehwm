@@ -8,7 +8,6 @@ venv/
 # Hydra / logs
 outputs/
 multirun/
-*.log
 wandb/
 lightning_logs/
 

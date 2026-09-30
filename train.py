@@ -89,7 +89,7 @@ def lehjepa_forward(self, batch, stage, cfg):
     cons_tgt = _flat(model.elevator, z0_roll).detach()
  
     # Skill 
-    pi_in = torch.cat([z0[:, t], m[:, 0].detach()], dim=-1)   # (B, D0 + m_dim)
+    pi_in = torch.cat([z0[:, t], m[:, 0]], dim=-1)   # (B, D0 + m_dim)
     a_pred = model.pi(pi_in)                                  # (B, n * action_dim)
     a_true = batch["action"][:, t:tn].reshape(B, -1).float()  # (B, n * action_dim)
 

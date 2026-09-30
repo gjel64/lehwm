@@ -62,4 +62,4 @@ loss:
   cons:
     weight: 1.0                      # manquait
   skill:
-    weight: 1.0 
+    weight: 0.1
