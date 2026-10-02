@@ -295,6 +295,7 @@ def run_benchmark(args):
 
     cfg = OmegaConf.load(ROOT / "config/eval" / f"{args.env}.yaml")
     cfg.solver = OmegaConf.load(ROOT / "config/eval/solver/cem.yaml")
+    cfg.solver.n_steps = args.cem_steps_l0
     cfg.cache_dir = None
     cfg.eval.num_eval = args.num_eval
 
@@ -441,6 +442,8 @@ def main():
     p.add_argument("--hwm-receding", type=int, default=1, help="blocs exécutés avant de replanifier (hwm)")
     p.add_argument("--num-samples", type=int, default=300, help="CEM sur m : nb d'échantillons")
     p.add_argument("--cem-steps", type=int, default=30, help="CEM sur m : nb d'itérations")
+    p.add_argument("--cem-steps-l0", type=int, default=10,
+                   help="CEM sur les actions (lewm, hwm-hybrid) : nb d'itérations (papier LeWM : 10 hors PushT)")
     p.add_argument("--topk", type=int, default=30, help="CEM sur m : nb d'élites")
     p.add_argument("--name", default="cube", help="nom du fichier de résultats (results/<name>.json|png)")
     p.add_argument("--append", action="store_true", help="ajoute aux résultats existants au lieu d'écraser")
