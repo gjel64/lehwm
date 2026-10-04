@@ -7,11 +7,12 @@ import lightning as pl
 import stable_pretraining as spt
 import stable_worldmodel as swm
 import torch
-from lightning.pytorch.loggers import WandbLogger
+from hydra.core.hydra_config import HydraConfig
+from lightning.pytorch.loggers import CSVLogger, WandbLogger
 from omegaconf import OmegaConf, open_dict
 
 from module import SIGReg, kl_loss
-from utils import get_column_normalizer, get_img_preprocessor, SaveCkptCallback
+from utils import get_column_normalizer, get_img_preprocessor, RunDirCallback
 from hjepa import freeze_level0, _flat
 
 
@@ -186,40 +187,25 @@ def run(cfg):
     ##       training       ##
     ##########################
 
-    run_id = cfg.get("subdir") or ""
-    run_dir = Path(swm.data.utils.get_cache_dir(sub_folder='checkpoints'), run_id)
+    # tout le run (config hydra, train.log, metrics.csv, loss.png, weights.pt) va dans results/<name>
+    run_dir = Path(HydraConfig.get().runtime.output_dir)
 
-    logger = None
+    loggers = [CSVLogger(run_dir, name="", version="")]
     if cfg.wandb.enabled:
-        logger = WandbLogger(**cfg.wandb.config)
-        logger.log_hyperparams(OmegaConf.to_container(cfg))
-
-    run_dir.mkdir(parents=True, exist_ok=True)
-    with open(run_dir / "config.yaml", "w") as f:
-        OmegaConf.save(cfg, f)
-
-    object_dump_callback = SaveCkptCallback(
-        run_name=cfg.output_model_name, cfg=cfg.model, epoch_interval=1,
-    )
+        loggers.append(WandbLogger(**cfg.wandb.config))
+        loggers[-1].log_hyperparams(OmegaConf.to_container(cfg))
 
     trainer = pl.Trainer(
         **cfg.trainer,
-        callbacks=[object_dump_callback],
+        default_root_dir=run_dir,
+        callbacks=[RunDirCallback(run_dir, cfg=cfg.model)],
         num_sanity_val_steps=1,
-        logger=logger,
-        enable_checkpointing=True,
+        logger=loggers,
+        enable_checkpointing=False,
     )
 
-    ckpt_path = run_dir / f"{cfg.output_model_name}_weights.ckpt"
-    manager = spt.Manager(
-        trainer=trainer,
-        module=world_model,
-        data=data_module,
-        ckpt_path=ckpt_path if ckpt_path.exists() else None,
-    )
-
-    manager()
-    return
+    spt.set(default_loggers={"registry": False})  # garde notre CSVLogger -> results/<name>/metrics.csv
+    spt.Manager(trainer=trainer, module=world_model, data=data_module)()
 
 
 if __name__ == "__main__":

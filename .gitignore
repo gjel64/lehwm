@@ -16,8 +16,9 @@ lightning_logs/
 *.pt
 *.h5
 
-# Benchmark (résultats, graphes, vidéos)
-benchmark/results/*.json
+# Runs : results/<name>/ (on garde loss.png, benchmark.png/json, config)
+results/*/videos/
+results/*/metrics.csv
 
 # IDE / OS
 .vscode/

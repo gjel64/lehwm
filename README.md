@@ -68,7 +68,20 @@ To launch training:
 python train.py data=pusht
 ```
 
-Checkpoints are saved to `$STABLEWM_HOME` upon completion.
+Everything for a run lands in `results/<name>/` (default name: launch timestamp):
+
+```
+results/<name>/
+  .hydra/  train.log      # config + logs
+  metrics.csv  loss.png   # loss curves, refreshed every epoch
+  weights.pt  config.json # trained model, saved every epoch
+  benchmark.json  benchmark.png  videos/   # written by benchmark.py
+```
+
+```bash
+python train.py name=my_run
+python benchmark.py my_run --methods lewm hwm hwm-hybrid
+```
 
 For baseline scripts, see the stable-worldmodel [scripts](https://github.com/galilai-group/stable-worldmodel/tree/main/scripts/train) folder.
 

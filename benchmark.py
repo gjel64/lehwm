@@ -9,10 +9,13 @@ Méthodes disponibles :
                  actions décodées par pi(z0, m*)
   hwm-hybrid  -> LeHWM : pi(z0, m*) initialise le CEM de niveau 0 (warm start), puis CEM classique
 
+Le modèle LeHWM est lu dans results/<run>/weights.pt (sortie de train.py) et les résultats
+sont écrits à côté : results/<run>/benchmark.json, benchmark.png (et videos/).
+
 Exemples :
-  python benchmark/benchmark.py                                   # lewm vs hwm, offset 25, 3 seeds
-  python benchmark/benchmark.py --methods lewm hwm hwm-hybrid --goal-offsets 25 50 --num-eval 50
-  python benchmark/benchmark.py --plot-only                       # retrace le graphe depuis le JSON
+  python benchmark.py mon_run                                     # lewm vs hwm, offset 25, 3 seeds
+  python benchmark.py mon_run --methods lewm hwm hwm-hybrid --goal-offsets 25 50 --num-eval 50
+  python benchmark.py mon_run --plot-only                         # retrace le graphe depuis le JSON
 """
 
 import os
@@ -21,7 +24,6 @@ os.environ.setdefault("MUJOCO_GL", "egl")
 
 import argparse
 import json
-import sys
 import time
 import warnings
 from collections import deque
@@ -30,13 +32,9 @@ from pathlib import Path
 import numpy as np
 import torch
 
-ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(ROOT))  # hjepa / jepa / module / eval importables
+ROOT = Path(__file__).resolve().parent
 
 warnings.filterwarnings("ignore", module="gymnasium")
-
-BENCH_DIR = Path(__file__).resolve().parent
-RESULTS_DIR = BENCH_DIR / "results"
 
 METHODS = ("lewm", "hwm", "hwm-hybrid")
 LABELS = {"lewm": "LeWM", "hwm": "LeHWM (niveau 1)", "hwm-hybrid": "LeHWM (hybride)"}
@@ -239,7 +237,7 @@ def load_models(args):
     if "lewm" in args.methods:
         models["lewm"] = prep(swm.wm.utils.load_pretrained(args.lewm))
     if any(m.startswith("hwm") for m in args.methods):
-        models["hwm"] = prep(swm.wm.utils.load_pretrained(args.hwm))
+        models["hwm"] = prep(swm.wm.utils.load_pretrained(str(args.run_dir / "weights.pt")))
     return models
 
 
@@ -311,7 +309,7 @@ def run_benchmark(args):
     transform = {"pixels": img_transform(cfg), "goal": img_transform(cfg)}
 
     models = load_models(args)
-    out_path = RESULTS_DIR / f"{args.name}.json"
+    out_path = args.run_dir / "benchmark.json"
     results = json.loads(out_path.read_text()) if out_path.exists() and args.append else []
 
     for goal_offset in args.goal_offsets:
@@ -327,7 +325,7 @@ def run_benchmark(args):
                 world = swm.World(**cfg.world, image_shape=(224, 224))
                 world.set_policy(build_policy(method, models, cfg, args, process, transform, seed))
 
-                video = RESULTS_DIR / "videos" / args.name / f"{method}_off{goal_offset}_s{seed}"
+                video = args.run_dir / "videos" / f"{method}_off{goal_offset}_s{seed}"
                 t0 = time.time()
                 metrics = world.evaluate(
                     dataset=dataset, start_steps=starts, goal_offset=goal_offset,
@@ -345,7 +343,6 @@ def run_benchmark(args):
                     "time_s": elapsed,
                 })
                 # sauvegarde après chaque run : rien n'est perdu si ça plante
-                RESULTS_DIR.mkdir(parents=True, exist_ok=True)
                 out_path.write_text(json.dumps(results, indent=2))
 
     print(f"\nRésultats : {out_path}")
@@ -430,10 +427,10 @@ def plot(results, path):
 
 def main():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    p.add_argument("run", help="nom du run : results/<run>/ (contient weights.pt de train.py)")
     p.add_argument("--methods", nargs="+", default=["lewm", "hwm"], choices=METHODS)
     p.add_argument("--env", default="cube", help="nom du fichier dans config/eval/ (sans .yaml)")
     p.add_argument("--lewm", default="quentinll/lewm-cube", help="checkpoint LeWM (relatif à $STABLEWM_HOME/checkpoints)")
-    p.add_argument("--hwm", default="lehwm/weights_epoch_10.pt", help="checkpoint LeHWM (relatif à $STABLEWM_HOME/checkpoints)")
     p.add_argument("--goal-offsets", nargs="+", type=int, default=[25], help="distance au but (pas env) ; plusieurs = difficulté croissante")
     p.add_argument("--budget-ratio", type=int, default=2, help="eval_budget = ratio * goal_offset")
     p.add_argument("--seeds", nargs="+", type=int, default=[0, 1, 2])
@@ -445,19 +442,19 @@ def main():
     p.add_argument("--cem-steps-l0", type=int, default=10,
                    help="CEM sur les actions (lewm, hwm-hybrid) : nb d'itérations (papier LeWM : 10 hors PushT)")
     p.add_argument("--topk", type=int, default=30, help="CEM sur m : nb d'élites")
-    p.add_argument("--name", default="cube", help="nom du fichier de résultats (results/<name>.json|png)")
     p.add_argument("--append", action="store_true", help="ajoute aux résultats existants au lieu d'écraser")
     p.add_argument("--video", action="store_true", help="enregistre les vidéos des épisodes")
     p.add_argument("--plot-only", action="store_true", help="ne simule pas, retrace le graphe depuis le JSON")
     args = p.parse_args()
 
-    json_path = RESULTS_DIR / f"{args.name}.json"
+    args.run_dir = ROOT / "results" / args.run
+    args.run_dir.mkdir(parents=True, exist_ok=True)
     if args.plot_only:
-        results = json.loads(json_path.read_text())
+        results = json.loads((args.run_dir / "benchmark.json").read_text())
     else:
         results = run_benchmark(args)
 
-    plot(results, RESULTS_DIR / f"{args.name}.png")
+    plot(results, args.run_dir / "benchmark.png")
 
 
 if __name__ == "__main__":

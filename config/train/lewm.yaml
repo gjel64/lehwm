@@ -4,8 +4,10 @@ defaults:
   - data: ogb
   - model: lewm
 
-output_model_name: lehwm
-subdir: ${hydra:job.id}
+name: ${now:%Y-%m-%d_%H-%M-%S}   # dossier du run : results/<name>  (python train.py name=mon_run)
+hydra:
+  run:
+    dir: results/${name}
 
 num_workers: 6
 train_split: 0.9

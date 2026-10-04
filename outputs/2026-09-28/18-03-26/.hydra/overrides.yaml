@@ -1,4 +1,0 @@
-- +trainer.limit_train_batches=60
-- +trainer.limit_val_batches=5
-- trainer.max_epochs=1
-- subdir=smoketest
