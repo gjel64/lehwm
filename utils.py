@@ -49,19 +49,48 @@ def plot_losses(run_dir):
             curves.setdefault(name, {})[stage] = c
     if not curves:
         return
-    fig, axes = plt.subplots(1, len(curves), figsize=(3.6 * len(curves), 3.2), squeeze=False)
-    for ax, (name, stages) in zip(axes[0], sorted(curves.items())):
-        for stage, col in sorted(stages.items()):  # fit/train avant validate/val
+    # grille de 3 colonnes ; chaque loss = courbe complète + zoom (sans le début du run) en dessous
+    names = sorted(curves)
+    ncols = min(3, len(names))
+    nrows = -(-len(names) // ncols)
+    fig, axes = plt.subplots(2 * nrows, ncols, figsize=(4.4 * ncols, 2.6 * 2 * nrows), squeeze=False)
+    end = df["step"].max()
+    start = 0.1 * end  # le zoom ignore les 10% premiers steps (pic initial)
+    for i, name in enumerate(names):
+        r, c = divmod(i, ncols)
+        full, zoom = axes[2 * r][c], axes[2 * r + 1][c]
+        visible = []  # valeurs affichées dans la zone zoomée -> limites y
+        for stage, col in sorted(curves[name].items()):  # fit/train avant validate/val
             d = df[["step", col]].dropna()
             if col.endswith("_epoch"):
-                ax.plot(d["step"], d[col], "o-", ms=4, lw=2, color="#eb6834", label=stage)
+                for ax in (full, zoom):
+                    ax.plot(d["step"], d[col], "o-", ms=4, lw=2, color="#eb6834", label=stage)
+                v = d.loc[d["step"] >= start, col]  # peu de points : on les garde tous
+                visible.append((v.min(), v.max()))
             else:
-                ax.plot(d["step"], d[col], lw=0.5, alpha=0.3, color="#2a78d6")
-                ax.plot(d["step"], d[col].ewm(alpha=0.05).mean(), lw=2, color="#2a78d6", label=stage)
-        ax.set_title(name, loc="left", fontsize=10)
-        ax.set_xlabel("step")
-        ax.grid(color="#e4e3df", lw=0.8)
-        ax.spines[["top", "right"]].set_visible(False)
+                smooth = d[col].ewm(alpha=0.05).mean()
+                for ax in (full, zoom):
+                    ax.plot(d["step"], d[col], lw=0.5, alpha=0.3, color="#2a78d6")
+                    ax.plot(d["step"], smooth, lw=2, color="#2a78d6", label=stage)
+                v = smooth[d["step"] >= start]  # percentiles : un pic isolé n'écrase pas l'échelle
+                visible.append((v.quantile(0.01), v.quantile(0.99)))
+        visible = [(lo, hi) for lo, hi in visible if pd.notna(lo)]
+        if visible:
+            lo, hi = min(b[0] for b in visible), max(b[1] for b in visible)
+            pad = (hi - lo) * 0.15 or abs(hi) * 0.05 or 1e-3
+            zoom.set_ylim(lo - pad, hi + pad)
+        zoom.set_xlim(start, end)
+        full.axvspan(start, end, color="#f3f2ee", zorder=0)  # zone affichée dans le zoom
+        full.set_title(name, loc="left", fontsize=10)
+        zoom.set_title(f"{name} — zoom", loc="left", fontsize=9, color="#6b6a66")
+        zoom.set_xlabel("step")
+        for ax in (full, zoom):
+            ax.grid(color="#e4e3df", lw=0.8)
+            ax.spines[["top", "right"]].set_visible(False)
+    for i in range(len(names), nrows * ncols):
+        r, c = divmod(i, ncols)
+        axes[2 * r][c].axis("off")
+        axes[2 * r + 1][c].axis("off")
     axes[0][0].legend(frameon=False)
     fig.tight_layout()
     fig.savefig(Path(run_dir) / "loss.png", dpi=120)
@@ -85,3 +114,9 @@ class RunDirCallback(Callback):
         for logger in trainer.loggers:
             logger.save()
         plot_losses(self.run_dir)
+
+
+if __name__ == "__main__":
+    # retracer loss.png d'un run à la main : python utils.py results/<name>
+    import sys
+    plot_losses(sys.argv[1])

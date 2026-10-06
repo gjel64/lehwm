@@ -1,3 +1,8 @@
+"""
+python train.py name=run_name trainer.max_epochs=20
+
+"""
+
 import os
 from functools import partial
 from pathlib import Path

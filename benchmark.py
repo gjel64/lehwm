@@ -37,7 +37,7 @@ ROOT = Path(__file__).resolve().parent
 warnings.filterwarnings("ignore", module="gymnasium")
 
 METHODS = ("lewm", "hwm", "hwm-hybrid")
-LABELS = {"lewm": "LeWM", "hwm": "LeHWM (niveau 1)", "hwm-hybrid": "LeHWM (hybride)"}
+LABELS = {"lewm": "LeWM", "hwm": "LeHWM (level 1)", "hwm-hybrid": "LeHWM (hybrid)"}
 # palette catégorielle validée (slots 1-3), ordre fixe par méthode
 COLORS = {"lewm": "#2a78d6", "hwm": "#eb6834", "hwm-hybrid": "#1baf7a"}
 
@@ -387,8 +387,8 @@ def plot(results, path):
     x = np.arange(len(offsets))
 
     for ax, col, title, ylabel in (
-        (axes[0], 0, "Taux de succès (moyenne ± écart-type sur les seeds)", "succès (%)"),
-        (axes[1], 3, "Temps de planification", "secondes / épisode"),
+        (axes[0], 0, "Success rate (mean ± std over seeds)", "success (%)"),
+        (axes[1], 3, "Planning time", "seconds / episode"),
     ):
         ax.set_facecolor("#fcfcfb")
         for i, m in enumerate(methods):
@@ -433,7 +433,7 @@ def main():
     p.add_argument("--lewm", default="quentinll/lewm-cube", help="checkpoint LeWM (relatif à $STABLEWM_HOME/checkpoints)")
     p.add_argument("--goal-offsets", nargs="+", type=int, default=[25], help="distance au but (pas env) ; plusieurs = difficulté croissante")
     p.add_argument("--budget-ratio", type=int, default=2, help="eval_budget = ratio * goal_offset")
-    p.add_argument("--seeds", nargs="+", type=int, default=[0, 1, 2])
+    p.add_argument("--seeds", nargs="+", type=int, default=[7, 14, 21])
     p.add_argument("--num-eval", type=int, default=50, help="épisodes par (méthode, offset, seed)")
     p.add_argument("--n", type=int, default=4, help="nb de blocs prédits par pi (cfg.n à l'entraînement)")
     p.add_argument("--hwm-receding", type=int, default=1, help="blocs exécutés avant de replanifier (hwm)")

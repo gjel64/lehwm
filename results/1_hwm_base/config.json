@@ -1,0 +1,103 @@
+{
+  "_target_": "hjepa.HJEPA",
+  "encoder": {
+    "_target_": "stable_pretraining.backbone.utils.vit_hf",
+    "size": "tiny",
+    "patch_size": 14,
+    "image_size": 224,
+    "pretrained": false,
+    "use_mask_token": false
+  },
+  "predictor": {
+    "_target_": "module.ARPredictor",
+    "num_frames": 3,
+    "input_dim": 192,
+    "hidden_dim": 192,
+    "output_dim": 192,
+    "depth": 6,
+    "heads": 16,
+    "mlp_dim": 2048,
+    "dim_head": 64,
+    "dropout": 0.1,
+    "emb_dropout": 0.0
+  },
+  "action_encoder": {
+    "_target_": "module.Embedder",
+    "input_dim": 25,
+    "emb_dim": 192
+  },
+  "projector": {
+    "_target_": "module.MLP",
+    "input_dim": 192,
+    "output_dim": 192,
+    "hidden_dim": 2048,
+    "norm_fn": {
+      "_target_": "torch.nn.BatchNorm1d",
+      "_partial_": true
+    }
+  },
+  "pred_proj": {
+    "_target_": "module.MLP",
+    "input_dim": 192,
+    "output_dim": 192,
+    "hidden_dim": 2048,
+    "norm_fn": {
+      "_target_": "torch.nn.BatchNorm1d",
+      "_partial_": true
+    }
+  },
+  "elevator": {
+    "_target_": "module.MLP",
+    "input_dim": 192,
+    "output_dim": 96,
+    "hidden_dim": 2048,
+    "norm_fn": {
+      "_target_": "torch.nn.BatchNorm1d",
+      "_partial_": true
+    }
+  },
+  "posterior": {
+    "_target_": "module.Posterior",
+    "input_dim": 96,
+    "hidden_dim": 512,
+    "m_dim": 32
+  },
+  "predictor1": {
+    "_target_": "module.ARPredictor",
+    "num_frames": 1,
+    "input_dim": 96,
+    "hidden_dim": 256,
+    "output_dim": 96,
+    "depth": 4,
+    "heads": 8,
+    "mlp_dim": 1024,
+    "dim_head": 32,
+    "dropout": 0.1,
+    "emb_dropout": 0.0
+  },
+  "pi": {
+    "_target_": "module.MLP",
+    "input_dim": 224,
+    "output_dim": 100,
+    "hidden_dim": 1024,
+    "norm_fn": {
+      "_target_": "torch.nn.BatchNorm1d",
+      "_partial_": true
+    }
+  },
+  "m_encoder": {
+    "_target_": "module.Embedder",
+    "input_dim": 32,
+    "emb_dim": 96
+  },
+  "pred_proj1": {
+    "_target_": "module.MLP",
+    "input_dim": 96,
+    "output_dim": 96,
+    "hidden_dim": 512,
+    "norm_fn": {
+      "_target_": "torch.nn.BatchNorm1d",
+      "_partial_": true
+    }
+  }
+}
