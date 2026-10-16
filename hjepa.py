@@ -49,3 +49,13 @@ def _flat(mod, x):
     B, T, _ = x.shape
     return mod(x.reshape(B * T, -1)).reshape(B, T, -1)
  
+
+class FlatPolicy(JEPA):
+    """Ablation « sans hiérarchie » : LeWM gelé + politique à plat pi(z0_t, z0_{t+n}) -> n blocs
+    d'actions. Mêmes données, même LeWM, même pi (MLP), même budget que le niveau 1 de HJEPA."""
+
+    def __init__(self, *, pi, **lewm_kwargs):
+        super().__init__(**lewm_kwargs)
+        self.pi = pi
+
+    load_lewm = HJEPA.load_lewm

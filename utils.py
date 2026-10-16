@@ -33,6 +33,13 @@ def get_column_normalizer(dataset, source: str, target: str):
     std = data.std(0, keepdim=True).clone()
     return dt.transforms.WrapTorchTransform(ZScoreNormalizer(mean, std), source=source, target=target)
 
+
+def get_stats_normalizer(col_stats, source: str, target: str):
+    """Normalizer from precomputed stats ({"mean", "std"} of an H-JEPA normalizer.pt)."""
+    mean = torch.as_tensor(col_stats["mean"], dtype=torch.float32).reshape(1, -1)
+    std = torch.as_tensor(col_stats["std"], dtype=torch.float32).reshape(1, -1)
+    return dt.transforms.WrapTorchTransform(ZScoreNormalizer(mean, std), source=source, target=target)
+
 def plot_losses(run_dir):
     """Trace chaque loss (train par pas, val par epoch) depuis metrics.csv -> loss.png."""
     import matplotlib

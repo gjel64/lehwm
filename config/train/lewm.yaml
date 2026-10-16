@@ -4,14 +4,14 @@ defaults:
   - data: ogb
   - model: lewm
 
-name: ${now:%Y-%m-%d_%H-%M-%S}   # dossier du run : results/<name>  (python train.py name=mon_run)
+exp: ${now:%Y-%m-%d_%H-%M-%S}    # python train.py exp=mon_exp seed=42  (puis 43, 44)
+name: ${exp}/seed${seed}          # dossier du run : results/<exp>/seed<seed> (lu par benchmark.py)
 hydra:
   run:
     dir: results/${name}
 
 num_workers: 6
-train_split: 0.9
-seed: 3072
+seed: 42              # protocole H-JEPA : seeds 42 / 43 / 44, LeWM gelé de même seed
 img_size: 224
 embed_dim: 192
 history_size: 3
@@ -29,10 +29,14 @@ action_dim: ???       # read on config.json
 
 
 num_preds: ${n}
-lewm_weights: ~/.stable_worldmodel/checkpoints/quentinll/lewm-cube/weights.pt  # hf download quentinll/lewm-cube
+# Niveau 0 gelé = LeWM du papier H-JEPA (entraîné sur le split train seulement), voir README
+hjepa_home: ${oc.env:HJEPA_HOME,${oc.env:HOME}/hjepa_home}
+lewm_ckpt_dir: ${hjepa_home}/ckpts/cube/cube_lewm/seed${seed}
+lewm_weights: ${lewm_ckpt_dir}/lewm_state_dict.pt   # python convert_lewm.py <dir>/cube_lewm_object.ckpt
+lewm_normalizer: ${lewm_ckpt_dir}/normalizer.pt
 
 trainer:
-  max_epochs: 100
+  max_epochs: 8        # budget d'epochs H-JEPA sur cube (Table 4)
   devices: auto
   accelerator: gpu
   precision: bf16

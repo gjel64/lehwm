@@ -1,0 +1,55 @@
+# Ablation : python train.py model=flat_policy exp=1_flat_policy seed=<s>
+_target_: hjepa.FlatPolicy
+
+encoder:
+  _target_: stable_pretraining.backbone.utils.vit_hf
+  size: tiny
+  patch_size: 14
+  image_size: ${img_size}
+  pretrained: false
+  use_mask_token: false
+
+predictor: # = level-1 predictor of the H-JEPA paper's LeWM (Table 4 / config/train/base/cube.yaml)
+  _target_: module.ARPredictor
+  num_frames: ${history_size}
+  input_dim: ${embed_dim}
+  hidden_dim: ${embed_dim}
+  output_dim: ${embed_dim}
+  depth: 4
+  heads: 8
+  mlp_dim: 1024
+  dim_head: 64
+  dropout: 0.1
+  emb_dropout: 0.0
+
+action_encoder:
+  _target_: module.Embedder
+  input_dim: ${action_dim}
+  emb_dim: ${embed_dim}
+
+projector:
+  _target_: module.MLP
+  input_dim: ${embed_dim}
+  output_dim: ${embed_dim}
+  hidden_dim: 2048
+  norm_fn:
+    _target_: torch.nn.BatchNorm1d
+    _partial_: true
+
+pred_proj:
+  _target_: module.MLP
+  input_dim: ${embed_dim}
+  output_dim: ${embed_dim}
+  hidden_dim: 2048
+  norm_fn:
+    _target_: torch.nn.BatchNorm1d
+    _partial_: true
+
+pi: # politique à plat conditionnée par le but : (z0_t, z0_{t+n}) -> n blocs d'actions
+  _target_: module.MLP
+  input_dim: ${eval:'2 * ${embed_dim}'}
+  output_dim: ${eval:'${action_dim} * ${n}'}
+  hidden_dim: 1024
+  norm_fn:
+    _target_: torch.nn.BatchNorm1d
+    _partial_: true

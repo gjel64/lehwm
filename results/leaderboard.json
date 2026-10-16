@@ -1,0 +1,386 @@
+{
+  "1_hwm_base/hwm": {
+    "protocol": "val4x50",
+    "label": "LeHWM (level 1)",
+    "family": "LeHWM (ours)",
+    "exp": "1_hwm_base",
+    "method": "hwm",
+    "success": 24.5,
+    "se": null,
+    "offsets": {
+      "25": {
+        "success": 44.0,
+        "se": null,
+        "n_seeds": 1
+      },
+      "50": {
+        "success": 46.0,
+        "se": null,
+        "n_seeds": 1
+      },
+      "100": {
+        "success": 8.0,
+        "se": null,
+        "n_seeds": 1
+      },
+      "200": {
+        "success": 0.0,
+        "se": null,
+        "n_seeds": 1
+      }
+    },
+    "seeds": [
+      42
+    ],
+    "num_eval": 50,
+    "complete": true,
+    "updated": "2026-10-12 13:26:15"
+  },
+  "1_hwm_base/hwm-hybrid": {
+    "protocol": "val4x50",
+    "label": "LeHWM (hybrid)",
+    "family": "LeHWM (ours)",
+    "exp": "1_hwm_base",
+    "method": "hwm-hybrid",
+    "success": 53.0,
+    "se": null,
+    "offsets": {
+      "25": {
+        "success": 74.0,
+        "se": null,
+        "n_seeds": 1
+      },
+      "50": {
+        "success": 70.0,
+        "se": null,
+        "n_seeds": 1
+      },
+      "100": {
+        "success": 66.0,
+        "se": null,
+        "n_seeds": 1
+      },
+      "200": {
+        "success": 2.0,
+        "se": null,
+        "n_seeds": 1
+      }
+    },
+    "seeds": [
+      42
+    ],
+    "num_eval": 50,
+    "complete": true,
+    "updated": "2026-10-12 13:26:15"
+  },
+  "1_hwm_base/hwm-noplan": {
+    "protocol": "val4x50",
+    "label": "LeHWM (level 1, no CEM)",
+    "family": "LeHWM (ours)",
+    "exp": "1_hwm_base",
+    "method": "hwm-noplan",
+    "success": 32.5,
+    "se": null,
+    "offsets": {
+      "25": {
+        "success": 60.0,
+        "se": null,
+        "n_seeds": 1
+      },
+      "50": {
+        "success": 44.0,
+        "se": null,
+        "n_seeds": 1
+      },
+      "100": {
+        "success": 22.0,
+        "se": null,
+        "n_seeds": 1
+      },
+      "200": {
+        "success": 4.0,
+        "se": null,
+        "n_seeds": 1
+      }
+    },
+    "seeds": [
+      42
+    ],
+    "num_eval": 50,
+    "complete": true,
+    "updated": "2026-10-12 13:26:15"
+  },
+  "baselines/ref-lewm": {
+    "protocol": "val4x50",
+    "label": "LeWM",
+    "family": "LeWM",
+    "exp": null,
+    "method": "ref-lewm",
+    "success": 39.333333333333336,
+    "se": 0.6666666666666667,
+    "offsets": {
+      "25": {
+        "success": 58.666666666666664,
+        "se": 4.371625682868,
+        "n_seeds": 3
+      },
+      "50": {
+        "success": 56.666666666666664,
+        "se": 2.403700850309326,
+        "n_seeds": 3
+      },
+      "100": {
+        "success": 42.0,
+        "se": 4.163331998932265,
+        "n_seeds": 3
+      },
+      "200": {
+        "success": 0.0,
+        "se": 0.0,
+        "n_seeds": 3
+      }
+    },
+    "seeds": [
+      42,
+      43,
+      44
+    ],
+    "num_eval": 50,
+    "complete": true,
+    "updated": "2026-10-12 12:34:38"
+  },
+  "baselines/ref-hjepa-l2": {
+    "protocol": "val4x50",
+    "label": "H-JEPA (2 levels)",
+    "family": "H-JEPA",
+    "exp": null,
+    "method": "ref-hjepa-l2",
+    "success": 32.333333333333336,
+    "se": 1.3017082793177759,
+    "offsets": {
+      "25": {
+        "success": 54.666666666666664,
+        "se": 2.403700850309326,
+        "n_seeds": 3
+      },
+      "50": {
+        "success": 47.333333333333336,
+        "se": 0.6666666666666667,
+        "n_seeds": 3
+      },
+      "100": {
+        "success": 26.666666666666668,
+        "se": 2.666666666666667,
+        "n_seeds": 3
+      },
+      "200": {
+        "success": 0.6666666666666666,
+        "se": 0.6666666666666667,
+        "n_seeds": 3
+      }
+    },
+    "seeds": [
+      42,
+      43,
+      44
+    ],
+    "num_eval": 50,
+    "complete": true,
+    "updated": "2026-10-12 12:34:38"
+  },
+  "baselines/ref-hjepa-l3": {
+    "protocol": "val4x50",
+    "label": "H-JEPA (3 levels)",
+    "family": "H-JEPA",
+    "exp": null,
+    "method": "ref-hjepa-l3",
+    "success": 27.5,
+    "se": 1.3228756555322954,
+    "offsets": {
+      "25": {
+        "success": 52.666666666666664,
+        "se": 2.4037008503093276,
+        "n_seeds": 3
+      },
+      "50": {
+        "success": 35.333333333333336,
+        "se": 2.666666666666667,
+        "n_seeds": 3
+      },
+      "100": {
+        "success": 22.0,
+        "se": 4.163331998932266,
+        "n_seeds": 3
+      },
+      "200": {
+        "success": 0.0,
+        "se": 0.0,
+        "n_seeds": 3
+      }
+    },
+    "seeds": [
+      42,
+      43,
+      44
+    ],
+    "num_eval": 50,
+    "complete": true,
+    "updated": "2026-10-12 12:34:38"
+  },
+  "baselines/ref-hjepa-l4": {
+    "protocol": "val4x50",
+    "label": "H-JEPA (4 levels)",
+    "family": "H-JEPA",
+    "exp": null,
+    "method": "ref-hjepa-l4",
+    "success": 26.166666666666668,
+    "se": 0.8819171036881969,
+    "offsets": {
+      "25": {
+        "success": 48.666666666666664,
+        "se": 2.666666666666667,
+        "n_seeds": 3
+      },
+      "50": {
+        "success": 31.333333333333332,
+        "se": 1.7638342073763926,
+        "n_seeds": 3
+      },
+      "100": {
+        "success": 23.333333333333332,
+        "se": 2.403700850309327,
+        "n_seeds": 3
+      },
+      "200": {
+        "success": 1.3333333333333333,
+        "se": 1.3333333333333335,
+        "n_seeds": 3
+      }
+    },
+    "seeds": [
+      42,
+      43,
+      44
+    ],
+    "num_eval": 50,
+    "complete": true,
+    "updated": "2026-10-12 12:34:38"
+  },
+  "baselines/ref-hwm-l2": {
+    "protocol": "val4x50",
+    "label": "HWM (2 levels)",
+    "family": "HWM",
+    "exp": null,
+    "method": "ref-hwm-l2",
+    "success": 32.5,
+    "se": 0.2886751345948129,
+    "offsets": {
+      "25": {
+        "success": 66.0,
+        "se": 1.1547005383792517,
+        "n_seeds": 3
+      },
+      "50": {
+        "success": 39.333333333333336,
+        "se": 1.7638342073763937,
+        "n_seeds": 3
+      },
+      "100": {
+        "success": 24.666666666666668,
+        "se": 2.9059326290271157,
+        "n_seeds": 3
+      },
+      "200": {
+        "success": 0.0,
+        "se": 0.0,
+        "n_seeds": 3
+      }
+    },
+    "seeds": [
+      42,
+      43,
+      44
+    ],
+    "num_eval": 50,
+    "complete": true,
+    "updated": "2026-10-12 12:34:38"
+  },
+  "baselines/ref-hwm-l3": {
+    "protocol": "val4x50",
+    "label": "HWM (3 levels)",
+    "family": "HWM",
+    "exp": null,
+    "method": "ref-hwm-l3",
+    "success": 31.5,
+    "se": 0.5773502691896258,
+    "offsets": {
+      "25": {
+        "success": 64.0,
+        "se": 3.0550504633038935,
+        "n_seeds": 3
+      },
+      "50": {
+        "success": 37.333333333333336,
+        "se": 1.3333333333333333,
+        "n_seeds": 3
+      },
+      "100": {
+        "success": 24.666666666666668,
+        "se": 0.6666666666666666,
+        "n_seeds": 3
+      },
+      "200": {
+        "success": 0.0,
+        "se": 0.0,
+        "n_seeds": 3
+      }
+    },
+    "seeds": [
+      42,
+      43,
+      44
+    ],
+    "num_eval": 50,
+    "complete": true,
+    "updated": "2026-10-12 12:34:38"
+  },
+  "baselines/ref-hwm-l4": {
+    "protocol": "val4x50",
+    "label": "HWM (4 levels)",
+    "family": "HWM",
+    "exp": null,
+    "method": "ref-hwm-l4",
+    "success": 35.333333333333336,
+    "se": 1.0137937550497034,
+    "offsets": {
+      "25": {
+        "success": 65.33333333333333,
+        "se": 1.7638342073763937,
+        "n_seeds": 3
+      },
+      "50": {
+        "success": 39.333333333333336,
+        "se": 2.905932629027116,
+        "n_seeds": 3
+      },
+      "100": {
+        "success": 36.666666666666664,
+        "se": 6.5659052011974035,
+        "n_seeds": 3
+      },
+      "200": {
+        "success": 0.0,
+        "se": 0.0,
+        "n_seeds": 3
+      }
+    },
+    "seeds": [
+      42,
+      43,
+      44
+    ],
+    "num_eval": 50,
+    "complete": true,
+    "updated": "2026-10-12 12:34:38"
+  }
+}

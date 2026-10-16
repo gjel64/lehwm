@@ -17,8 +17,8 @@ from lightning.pytorch.loggers import CSVLogger, WandbLogger
 from omegaconf import OmegaConf, open_dict
 
 from module import SIGReg, kl_loss
-from utils import get_column_normalizer, get_img_preprocessor, RunDirCallback
-from hjepa import freeze_level0, _flat
+from utils import get_column_normalizer, get_stats_normalizer, get_img_preprocessor, RunDirCallback
+from hjepa import FlatPolicy, freeze_level0, _flat
 
 
 def lejepa_forward(self, batch, stage, cfg):
@@ -126,36 +126,70 @@ def lehjepa_forward(self, batch, stage, cfg):
 
 
 
+def gcbc_forward(self, batch, stage, cfg):
+    """Ablation (model=flat_policy) : la skill loss de lehjepa_forward, mais pi conditionnée
+    directement par le but z0_{t+n} au lieu de m. Seules les frames t et t+n sont encodées."""
+
+    ctx_len = cfg.history_size
+    n = cfg.n
+    model = self.model
+    freeze_level0(model)
+
+    batch["action"] = torch.nan_to_num(batch["action"], 0.0)
+    t, tn = ctx_len - 1, ctx_len - 1 + n
+
+    with torch.no_grad():
+        z0 = model.encode({"pixels": batch["pixels"][:, [t, tn]]})["emb"]   # (B, 2, D0)
+    B = z0.size(0)
+
+    a_pred = model.pi(z0.reshape(B, -1))                      # (B, n * action_dim)
+    a_true = batch["action"][:, t:tn].reshape(B, -1).float()  # (B, n * action_dim)
+
+    output = {"skill_loss": (a_pred - a_true).pow(2).mean()}
+    output["loss"] = cfg.loss.skill.weight * output["skill_loss"]
+
+    logs = {f"{stage}/{k}": v.detach() for k, v in output.items() if "loss" in k}
+    self.log_dict(logs, on_step=True, sync_dist=True)
+    return output
+
+
 @hydra.main(version_base=None, config_path="./config/train", config_name="lewm")
 def run(cfg):
     #########################
     ##       dataset       ##
     #########################
 
+    # protocole H-JEPA : train = 9 800 premiers épisodes, val = 200 derniers (dont viennent les tâches d'éval)
     dataset_cfg = OmegaConf.to_container(cfg.data.dataset, resolve=True)
     dataset_name = dataset_cfg.pop("name")
+    val_name = dataset_cfg.pop("val_name")
     cache_dir = os.environ.get("LOCAL_DATASET_DIR", None)
-    dataset = swm.data.load_dataset(
-        dataset_name, transform=None, cache_dir=cache_dir, **dataset_cfg
+    train_set, val_set = (
+        swm.data.load_dataset(name, transform=None, cache_dir=cache_dir, **dataset_cfg)
+        for name in (dataset_name, val_name)
     )
+
+    # mêmes stats de normalisation que le LeWM gelé (normalizer.pt du checkpoint H-JEPA)
+    stats = torch.load(Path(cfg.lewm_normalizer).expanduser(), weights_only=False)["stats"]
     transforms = [get_img_preprocessor(source='pixels', target='pixels', img_size=cfg.img_size)]
-    
+
     with open_dict(cfg):
         for col in cfg.data.dataset.keys_to_load:
             if col.startswith("pixels"):
                 continue
-            normalizer = get_column_normalizer(dataset, col, col)
+            if col in stats:
+                normalizer = get_stats_normalizer(stats[col], col, col)
+            else:
+                normalizer = get_column_normalizer(train_set, col, col)
             transforms.append(normalizer)
 
-        cfg.action_dim = cfg.data.dataset.frameskip * dataset.get_dim("action")
+        cfg.action_dim = cfg.data.dataset.frameskip * train_set.get_dim("action")
 
     transform = spt.data.transforms.Compose(*transforms)
-    dataset.transform = transform
+    train_set.transform = transform
+    val_set.transform = transform
 
     rnd_gen = torch.Generator().manual_seed(cfg.seed)
-    train_set, val_set = spt.data.random_split(
-        dataset, lengths=[cfg.train_split, 1 - cfg.train_split], generator=rnd_gen
-    )
 
     train = torch.utils.data.DataLoader(train_set, **cfg.loader,shuffle=True, drop_last=True, generator=rnd_gen)
     val = torch.utils.data.DataLoader(val_set, **cfg.loader, shuffle=False, drop_last=False)
@@ -184,7 +218,7 @@ def run(cfg):
     world_model = spt.Module(
         model = world_model,
         sigreg = SIGReg(**cfg.loss.sigreg.kwargs),
-        forward=partial(lehjepa_forward, cfg=cfg),
+        forward=partial(gcbc_forward if isinstance(world_model, FlatPolicy) else lehjepa_forward, cfg=cfg),
         optim=optimizers,
     )
 

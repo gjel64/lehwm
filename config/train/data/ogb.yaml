@@ -1,5 +1,7 @@
 dataset:
-  name: ogbench/cube_single_expert.h5
+  # split H-JEPA (third_party/H-JEPA/scripts/data/split_cube.py) : 9 800 épisodes train / 200 val
+  name: ${hjepa_home}/cube_single_expert_train.h5
+  val_name: ${hjepa_home}/cube_single_expert_val.h5
   num_steps: ${eval:'${num_preds} + ${history_size}'}
   frameskip: 5
   keys_to_load:

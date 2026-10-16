@@ -24,3 +24,6 @@ results/*/metrics.csv
 .vscode/
 .idea/
 .DS_Store
+
+# Code H-JEPA (cloné par setup_hjepa.sh)
+third_party/

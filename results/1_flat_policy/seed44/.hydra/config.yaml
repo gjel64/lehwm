@@ -1,0 +1,120 @@
+exp: 1_flat_policy
+name: ${exp}/seed${seed}
+num_workers: 6
+seed: 44
+img_size: 224
+embed_dim: 192
+history_size: 3
+'n': 4
+embed_dim_1: 96
+m_dim: 32
+history_size_1: 1
+action_dim: ???
+num_preds: ${n}
+hjepa_home: ${oc.env:HJEPA_HOME,${oc.env:HOME}/hjepa_home}
+lewm_ckpt_dir: ${hjepa_home}/ckpts/cube/cube_lewm/seed${seed}
+lewm_weights: ${lewm_ckpt_dir}/lewm_state_dict.pt
+lewm_normalizer: ${lewm_ckpt_dir}/normalizer.pt
+trainer:
+  max_epochs: 8
+  devices: auto
+  accelerator: gpu
+  precision: bf16
+  gradient_clip_val: 1.0
+loader:
+  batch_size: 128
+  num_workers: ${num_workers}
+  persistent_workers: true
+  prefetch_factor: 3
+  pin_memory: true
+optimizer:
+  type: AdamW
+  lr: 0.0003
+  weight_decay: 0.001
+loss:
+  sigreg:
+    weight: 0.09
+    kwargs:
+      knots: 17
+      num_proj: 1024
+  kl:
+    weight: 0.01
+    warmup_steps: 5000
+    free_bits: 0.0
+  cons:
+    weight: 1.0
+  skill:
+    weight: 0.1
+wandb:
+  enabled: false
+  config:
+    entity: lewm
+    project: lewm
+    name: ${name}
+    id: ${name}
+    resume: allow
+    log_model: false
+data:
+  dataset:
+    name: ${hjepa_home}/cube_single_expert_train.h5
+    val_name: ${hjepa_home}/cube_single_expert_val.h5
+    num_steps: ${eval:'${num_preds} + ${history_size}'}
+    frameskip: 5
+    keys_to_load:
+    - pixels
+    - action
+    - observation
+    keys_to_cache:
+    - action
+    - observation
+    keys_to_merge:
+      proprio: proprio
+model:
+  _target_: hjepa.FlatPolicy
+  encoder:
+    _target_: stable_pretraining.backbone.utils.vit_hf
+    size: tiny
+    patch_size: 14
+    image_size: ${img_size}
+    pretrained: false
+    use_mask_token: false
+  predictor:
+    _target_: module.ARPredictor
+    num_frames: ${history_size}
+    input_dim: ${embed_dim}
+    hidden_dim: ${embed_dim}
+    output_dim: ${embed_dim}
+    depth: 4
+    heads: 8
+    mlp_dim: 1024
+    dim_head: 64
+    dropout: 0.1
+    emb_dropout: 0.0
+  action_encoder:
+    _target_: module.Embedder
+    input_dim: ${action_dim}
+    emb_dim: ${embed_dim}
+  projector:
+    _target_: module.MLP
+    input_dim: ${embed_dim}
+    output_dim: ${embed_dim}
+    hidden_dim: 2048
+    norm_fn:
+      _target_: torch.nn.BatchNorm1d
+      _partial_: true
+  pred_proj:
+    _target_: module.MLP
+    input_dim: ${embed_dim}
+    output_dim: ${embed_dim}
+    hidden_dim: 2048
+    norm_fn:
+      _target_: torch.nn.BatchNorm1d
+      _partial_: true
+  pi:
+    _target_: module.MLP
+    input_dim: ${eval:'2 * ${embed_dim}'}
+    output_dim: ${eval:'${action_dim} * ${n}'}
+    hidden_dim: 1024
+    norm_fn:
+      _target_: torch.nn.BatchNorm1d
+      _partial_: true

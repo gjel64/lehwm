@@ -1,0 +1,38 @@
+2026-10-12 14:31:46 === début de l'audit
+2026-10-12 14:31:46 train 1_flat_policy seed=42
+2026-10-12 14:31:51 audit seed=42 --part paper --exps baselines
+2026-10-12 14:31:51 audit seed=43 --part paper --exps baselines
+2026-10-12 14:31:51 audit seed=44 --part paper --exps baselines
+2026-10-12 14:41:48 ÉCHEC entraînement 1_flat_policy seed=42 (voir results/1_flat_policy/logs/train_seed42.log)
+2026-10-12 14:41:48 train 1_flat_policy seed=43
+--- relance (file d'entraînement unique) ---
+2026-10-12 14:43:19 === début de l'audit
+2026-10-12 14:43:19 train 1_flat_policy seed=42
+2026-10-12 14:43:19 audit seed=43 --part paper --exps baselines
+2026-10-12 14:43:19 audit seed=42 --part paper --exps baselines
+2026-10-12 14:43:19 audit seed=44 --part paper --exps baselines
+2026-10-12 16:23:44 fini : audit seed=43 --part paper --exps baselines
+2026-10-12 16:24:38 fini : audit seed=44 --part paper --exps baselines
+2026-10-12 16:31:21 fini : audit seed=42 --part paper --exps baselines
+2026-10-12 16:31:21 audit seed=42 --part main ablations paper --exps 1_hwm_base
+2026-10-13 02:58:58 entraîné : 1_flat_policy seed=42
+2026-10-13 02:58:58 train 1_hwm_base seed=43
+2026-10-13 05:56:11 fini : audit seed=42 --part main ablations paper --exps 1_hwm_base
+2026-10-13 05:56:11 audit seed=42 --part ablations paper --exps 1_flat_policy
+2026-10-13 11:40:44 fini : audit seed=42 --part ablations paper --exps 1_flat_policy
+2026-10-13 20:34:19 entraîné : 1_hwm_base seed=43
+2026-10-13 20:34:19 train 1_flat_policy seed=43
+2026-10-13 20:34:53 audit seed=43 --part main ablations paper --exps 1_hwm_base
+2026-10-14 02:19:58 fini : audit seed=43 --part main ablations paper --exps 1_hwm_base
+2026-10-14 09:16:49 entraîné : 1_flat_policy seed=43
+2026-10-14 09:16:49 train 1_hwm_base seed=44
+2026-10-14 09:17:00 audit seed=43 --part ablations paper --exps 1_flat_policy
+2026-10-14 12:59:21 fini : audit seed=43 --part ablations paper --exps 1_flat_policy
+2026-10-15 03:09:53 audit seed=44 --part main ablations paper --exps 1_hwm_base
+2026-10-15 03:10:04 entraîné : 1_hwm_base seed=44
+2026-10-15 03:10:04 train 1_flat_policy seed=44
+2026-10-15 10:41:41 fini : audit seed=44 --part main ablations paper --exps 1_hwm_base
+2026-10-15 15:57:30 entraîné : 1_flat_policy seed=44
+2026-10-15 15:57:43 audit seed=44 --part ablations paper --exps 1_flat_policy
+2026-10-15 17:18:25 fini : audit seed=44 --part ablations paper --exps 1_flat_policy
+2026-10-15 17:18:26 === fin de l'audit : results/audit/report.md

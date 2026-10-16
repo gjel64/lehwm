@@ -1,0 +1,6 @@
+[2026-10-12 14:43:25,230][root][INFO] - Cached 'action' from '/home/mattin/hjepa_home/cube_single_expert_train.h5'
+[2026-10-12 14:43:25,364][root][INFO] - Cached 'observation' from '/home/mattin/hjepa_home/cube_single_expert_train.h5'
+[2026-10-12 14:43:25,615][root][INFO] - Merged columns ['proprio_effector_pos', 'proprio_effector_yaw', 'proprio_gripper_contact', 'proprio_gripper_opening', 'proprio_gripper_vel', 'proprio_joint_pos', 'proprio_joint_vel'] into 'proprio' and cached it
+[2026-10-12 14:43:25,621][root][INFO] - Cached 'action' from '/home/mattin/hjepa_home/cube_single_expert_val.h5'
+[2026-10-12 14:43:25,623][root][INFO] - Cached 'observation' from '/home/mattin/hjepa_home/cube_single_expert_val.h5'
+[2026-10-12 14:43:25,629][root][INFO] - Merged columns ['proprio_effector_pos', 'proprio_effector_yaw', 'proprio_gripper_contact', 'proprio_gripper_opening', 'proprio_gripper_vel', 'proprio_joint_pos', 'proprio_joint_vel'] into 'proprio' and cached it

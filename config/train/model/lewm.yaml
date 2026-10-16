@@ -8,15 +8,15 @@ encoder:
   pretrained: false
   use_mask_token: false
 
-predictor:
+predictor: # = level-1 predictor of the H-JEPA paper's LeWM (Table 4 / config/train/base/cube.yaml)
   _target_: module.ARPredictor
   num_frames: ${history_size}
   input_dim: ${embed_dim}
   hidden_dim: ${embed_dim}
   output_dim: ${embed_dim}
-  depth: 6
-  heads: 16
-  mlp_dim: 2048
+  depth: 4
+  heads: 8
+  mlp_dim: 1024
   dim_head: 64
   dropout: 0.1
   emb_dropout: 0.0

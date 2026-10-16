@@ -1,0 +1,1 @@
+{"success_rate": 100.0, "episode_successes": [true], "seeds": null, "wall_clock_to_success": [0.24946001544594765], "steps_to_success": [20.0], "loaded_eval_original_lengths": [20], "steps_to_success_success_only": 20.0, "evaluation_time": 1.1174538135528564, "solve_records": []}
