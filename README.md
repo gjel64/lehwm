@@ -1,7 +1,6 @@
 # LeHWM
 
 An attempt to improve [LeWM](https://github.com/lucas-maes/le-wm) by adding a hierarchical level on top of it.
-The goal is to beat the state of the art in this area.
 
 ## Training (H-JEPA setup, cube)
 
